@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KSU – Design & BIM Workflow Status Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gd:#003C2F;--gm:#006650;--gl:#007D55;--gs:#4BAE85;
+  --bu:#4E192D;--tr:#C17250;--sd:#DBBC9A;--cr:#EBD9C7;
+  --go:#FFC000;--dn:#EE0000;--bl:#2060A0;--am:#C98053;
+  --bg:#F5F2EE;--card:#fff;--bd:#E2D9CE;--tx:#1C2B22;--sub:#5C6B60;
+  --font:'Nunito Sans','Calibri','Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);font-size:13px;}
+
+/* ── HEADER ── */
+header{background:var(--gd);border-bottom:5px solid var(--tr);}
+.hdr{max-width:1440px;margin:0 auto;padding:20px 36px 16px;
+  display:flex;justify-content:space-between;align-items:flex-end;gap:20px;}
+.hdr-l{display:flex;align-items:center;gap:14px;}
+.hdr-bar{width:5px;height:48px;border-radius:3px;
+  background:linear-gradient(to bottom,var(--tr),var(--go));flex-shrink:0;}
+.hdr-l h1{font-size:1.35rem;font-weight:900;color:#fff;line-height:1.2;}
+.hdr-l p{font-size:.74rem;color:rgba(255,255,255,.6);margin-top:4px;}
+.hdr-r{text-align:right;font-size:.71rem;line-height:1.85;color:rgba(255,255,255,.5);}
+.hdr-r strong{color:var(--sd);font-size:.86rem;}
+
+/* ── PART BANNER ── */
+.part-banner{padding:0;}
+.part-hdr{
+  display:flex;align-items:center;gap:14px;
+  padding:11px 36px;
+}
+.part-hdr.p1{background:var(--gd);}
+.part-hdr.p2{background:var(--bu);}
+.part-hdr.p3{background:#1A3A5C;}
+.part-num{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:900;color:var(--tx);flex-shrink:0;
+}
+.p1 .part-num{background:var(--tr);}
+.p2 .part-num{background:var(--sd);}
+.p3 .part-num{background:var(--go);}
+.part-hdr h2{font-size:1rem;font-weight:800;color:#fff;}
+.part-hdr p{font-size:.74rem;color:rgba(255,255,255,.6);margin-top:2px;}
+.part-sub{padding:8px 36px;font-size:.76rem;font-weight:700;color:#000000;
+  display:flex;align-items:center;gap:8px;}
+.p1 .part-sub{background:var(--tr);}
+.p2 .part-sub{background:var(--am);}
+.p3 .part-sub{background:#2060A0;}
+.part-sub .stag{background:rgba(0,0,0,.2);border-radius:3px;
+  padding:2px 7px;font-size:.66rem;letter-spacing:.6px;white-space:nowrap;}
+
+/* ── MAIN ── */
+.main{max-width:1440px;margin:0 auto;padding:20px 36px 50px;}
+.part-body{max-width:1440px;margin:0 auto;padding:20px 36px 32px;}
+
+/* ── SECTION DIVIDER ── */
+.sec{display:flex;align-items:flex-start;gap:10px;margin:22px 0 11px;}
+.sec-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.sec-txt h3{font-size:.88rem;font-weight:800;color:var(--gd);}
+.sec-txt p{font-size:.72rem;color:var(--sub);margin-top:2px;line-height:1.4;}
+
+/* ── KPI ROW ── */
+.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:12px;}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:7px;
+  padding:13px 12px 10px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--ac,var(--gm));}
+.kpi .lb{font-size:.62rem;font-weight:800;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.55px;}
+.kpi .vl{font-size:1.8rem;font-weight:900;line-height:1.1;margin:4px 0 3px;}
+.kpi .sb{font-size:.66rem;color:var(--sub);line-height:1.4;}
+.kpi .pb{height:4px;background:#EDE8E3;border-radius:2px;margin-top:6px;overflow:hidden;}
+.kpi .pf{height:100%;border-radius:2px;}
+
+/* ── GRID ── */
+.g{display:grid;gap:12px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g64{grid-template-columns:6fr 4fr;}
+.g73{grid-template-columns:7fr 3fr;}
+.g55{grid-template-columns:1fr 1fr;}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:16px 18px;}
+.card h3{font-size:.82rem;font-weight:800;color:var(--gd);margin-bottom:2px;}
+.card .cd{font-size:.7rem;color:var(--sub);margin-bottom:11px;line-height:1.4;}
+.cw{position:relative;}
+
+/* ── INSIGHT ROW ── */
+.ins-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:11px;}
+.ins{border-radius:7px;padding:12px 14px;border-left:4px solid var(--a);
+  background:var(--bi);font-size:.73rem;line-height:1.55;}
+.ins.g{--a:var(--gl);--bi:#EBF5F0;} .ins.a{--a:var(--am);--bi:#FAF2E8;}
+.ins.r{--a:var(--dn);--bi:#FDF0EF;} .ins.b{--a:var(--bl);--bi:#EBF0FA;}
+.ins h4{font-size:.73rem;font-weight:800;color:var(--gd);margin-bottom:4px;}
+.ins p{color:var(--sub);} .ins em{color:var(--gd);font-style:normal;font-weight:800;}
+
+/* ── TABLE: disciplines ── */
+.dt{width:100%;border-collapse:collapse;font-size:.71rem;}
+.dt th{background:var(--gd);color:#fff;padding:6px 8px;text-align:left;
+  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.dt td{padding:5px 8px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.dt tbody tr:hover td{background:#F0EDE9;}
+.dt td.nm{font-weight:700;max-width:170px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.pill{display:inline-block;padding:1px 6px;border-radius:7px;
+  font-size:.66rem;font-weight:800;white-space:nowrap;}
+.ph{background:#CEF0E0;color:#004A20;}
+.pm{background:#FDECD5;color:#804000;}
+.pl{background:#FDDAD8;color:#900000;}
+.pb2{height:5px;background:#EDE8E3;border-radius:3px;overflow:hidden;}
+.pf2{height:100%;border-radius:3px;}
+
+/* ── TABLE: tracker ── */
+.trk-tbl{width:100%;border-collapse:collapse;font-size:.69rem;}
+.trk-tbl th{background:var(--bu);color:#fff;padding:6px 8px;text-align:left;
+  font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.trk-tbl td{padding:5px 8px;border-bottom:1px solid var(--bd);vertical-align:top;}
+.trk-tbl tbody tr:hover td{background:#F8F2F5;}
+.badge{display:inline-block;border-radius:3px;padding:1px 6px;
+  font-size:.63rem;font-weight:800;white-space:nowrap;}
+.b-sub{background:#CEF0E0;color:#004A20;}
+.b-nosub{background:#FDECD5;color:#7A3800;}
+.b-rr{background:#FFF0D0;color:#7A4800;}
+.b-rej{background:#FDDAD8;color:#900000;}
+.b-appr{background:#CEF0E0;color:#004A20;}
+.b-prog{background:#E5EEFA;color:#1A3A7A;}
+.b-tbd{background:#EDE8E3;color:#5C6B60;}
+
+/* ── PART 3 COMPARISON CARDS ── */
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;}
+.cmp-card{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:13px 15px;}
+.cmp-card .cc-disc{font-size:.76rem;font-weight:800;color:var(--gd);margin-bottom:8px;}
+.cmp-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;font-size:.7rem;}
+.cmp-lbl{width:55px;font-weight:700;color:var(--sub);flex-shrink:0;}
+.cmp-bar-wrap{flex:1;height:10px;background:#EDE8E3;border-radius:5px;overflow:hidden;}
+.cmp-bar-fill{height:100%;border-radius:5px;transition:width .4s;}
+.cmp-pct{width:38px;text-align:right;font-weight:800;font-size:.72rem;}
+.cmp-gap{margin-top:6px;font-size:.67rem;padding:3px 6px;border-radius:4px;display:inline-block;}
+.gap-ok{background:#CEF0E0;color:#004A20;}
+.gap-warn{background:#FFF0D0;color:#7A4800;}
+.gap-risk{background:#FDDAD8;color:#900000;}
+
+/* ── DIVIDER LINE ── */
+.divider{border:none;border-top:2px dashed var(--bd);margin:28px 0;}
+
+/* ── FOOTER ── */
+footer{background:var(--bu);color:rgba(255,255,255,.5);
+  text-align:center;padding:12px;font-size:.67rem;}
+footer strong{color:rgba(255,255,255,.8);}
+
+@media(max-width:960px){
+  .g2,.g3,.g64,.g73,.g55,.ins-row,.cmp-grid{grid-template-columns:1fr;}
+  .hdr{flex-direction:column;align-items:flex-start;}
+  .hdr-r{text-align:left;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════════════════════════════════════ -->
+<header>
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="hdr-bar"></div>
+      <div>
+        <h1>Design &amp; BIM Workflow Status Dashboard</h1>
+        <p>KSU Facilities &amp; Utilities Relocation &nbsp;|&nbsp; CRC / Jacobs &nbsp;|&nbsp; Aconex CDE (Diriyah Gate Phase 2)</p>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <strong>12 May 2026</strong><br>
+      Source: Aconex Workflow Export &nbsp;|&nbsp; BIM Tracker: 27 April 2026<br>
+      Design WF: 2,186 workflows &nbsp;|&nbsp; BIM WF: 85 workflows (3 parts)
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     PART 1 — DESIGN SUBMISSIONS: WORKFLOW STATUS
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="part-banner">
+  <div class="part-hdr p1">
+    <div class="part-num">1</div>
+    <div>
+      <h2>Design Submissions — CSC Workflow Status</h2>
+      <p>All design drawings, calculations, reports &amp; specifications submitted through Aconex workflow to CSC for review. Source: Design Submissions – CSC Review 1.xlsx</p>
+    </div>
+  </div>
+  <div class="part-sub p1">
+    <span class="stag">KEY MESSAGE</span>
+    2,186 design workflows processed &mdash; 86% completed. However only 33% are approved; 41% were sent back for revision. PI and GE disciplines have the highest Revise &amp; Resubmit rates (&gt;50%). 37 workflows are actively overdue.
+  </div>
+</div>
+
+<div class="part-body">
+
+  <!-- KPIs -->
+  <div class="krow">
+    <div class="kpi" style="--ac:var(--gd)">
+      <div class="lb">Total Workflows</div>
+      <div class="vl">2,186</div>
+      <div class="sb">Unique design submission packages</div>
+    </div>
+    <div class="kpi" style="--ac:var(--gm)">
+      <div class="lb">Completed</div>
+      <div class="vl" style="color:var(--gm)">1,879</div>
+      <div class="pb"><div class="pf" style="width:85.9%;background:var(--gm)"></div></div>
+      <div class="sb">85.9% — review cycle finished</div>
+    </div>
+    <div class="kpi" style="--ac:var(--gl)">
+      <div class="lb">Approved / Appr. w/ Comments</div>
+      <div class="vl" style="color:var(--gl)">730</div>
+      <div class="pb"><div class="pf" style="width:33.4%;background:var(--gl)"></div></div>
+      <div class="sb">33.4% of all workflows cleared</div>
+    </div>
+    <div class="kpi" style="--ac:var(--go)">
+      <div class="lb">Revise &amp; Resubmit</div>
+      <div class="vl" style="color:#8A5800">903</div>
+      <div class="pb"><div class="pf" style="width:41.3%;background:var(--go)"></div></div>
+      <div class="sb">41.3% sent back for rework</div>
+    </div>
+    <div class="kpi" style="--ac:var(--am)">
+      <div class="lb">In Progress / Current</div>
+      <div class="vl" style="color:var(--am)">544</div>
+      <div class="sb">Pending outcome (536 In Progress + 8 Current)</div>
+    </div>
+    <div class="kpi" style="--ac:var(--dn)">
+      <div class="lb">Overdue</div>
+      <div class="vl" style="color:var(--dn)">37</div>
+      <div class="sb">Past due date, no outcome yet</div>
+    </div>
+    <div class="kpi" style="--ac:var(--bu)">
+      <div class="lb">Terminated</div>
+      <div class="vl" style="color:var(--bu)">262</div>
+      <div class="sb">Withdrawn or superseded workflows</div>
+    </div>
+    <div class="kpi" style="--ac:#555">
+      <div class="lb">Avg Review Cycle</div>
+      <div class="vl">13.4<span style="font-size:.9rem">d</span></div>
+      <div class="sb">Mean days from submission to outcome</div>
+    </div>
+  </div>
+
+  <!-- Status + Outcome -->
+  <div class="g g64">
+    <div class="card">
+      <h3>Review Outcome by Discipline</h3>
+      <div class="cd">Stacked bar per discipline showing count of Approved w/C, R&amp;R, Rejected, In Progress, and Terminated outcomes. Sorted by total workflow volume. Hover for exact counts.</div>
+      <div class="cw" style="height:360px"><canvas id="p1DiscOut"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Overall Workflow Outcome</h3>
+      <div class="cd">Proportion of all 2,186 workflows by their current review outcome. R&amp;R is the single largest completed-outcome bucket — a significant rework burden on the design team.</div>
+      <div class="cw" style="height:360px"><canvas id="p1OutDonut"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Monthly trend -->
+  <div class="g g2" style="margin-top:12px">
+    <div class="card">
+      <h3>Monthly Workflow Submissions (Date In)</h3>
+      <div class="cd">Count of workflows submitted to CSC per month by status at closure. October 2025 was the peak submission month (292 workflows), followed by March 2026 (215).</div>
+      <div class="cw" style="height:230px"><canvas id="p1MonthIn"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Monthly Review Decisions (Date Completed)</h3>
+      <div class="cd">When did review outcomes land? October 2025 had the most R&amp;R decisions (193). April 2026 saw the highest Approved w/C count (126) as the pipeline accelerates.</div>
+      <div class="cw" style="height:230px"><canvas id="p1MonthOut"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Discipline scorecard table + Duration -->
+  <div class="g g73" style="margin-top:12px">
+    <div class="card">
+      <h3>Discipline Scorecard</h3>
+      <div class="cd">
+        Approval rate = (Approved + Appr. w/C) ÷ total workflows.
+        R&amp;R rate = Revise &amp; Resubmit ÷ total.
+        <span class="pill ph">≥50% appr</span>&nbsp;
+        <span class="pill pm">30–49%</span>&nbsp;
+        <span class="pill pl">&lt;30%</span>
+      </div>
+      <div id="p1DiscTable"></div>
+    </div>
+    <div class="card">
+      <h3>Avg Review Duration by Discipline</h3>
+      <div class="cd">Mean days from workflow Date In to Date Completed. SLAs are typically 14 days. Most disciplines track close to the 14-day target.</div>
+      <div class="cw" style="height:380px"><canvas id="p1DurBar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="ins-row">
+    <div class="ins g">
+      <h4>&#127881; Architectural Leads on Approval</h4>
+      <p>AR achieves the best approval rate at <em>42.7%</em> with a comparatively low R&amp;R rate (27.3%). Interior Design (ID) is even stronger at 80% — both disciplines are closest to design completion.</p>
+    </div>
+    <div class="ins a">
+      <h4>&#9888; PI &amp; GE: High Rework Burden</h4>
+      <p>Process &amp; Instrumentation has a <em>53.7% R&amp;R rate</em> — more than half of all PI submissions require revision. Geotechnical hits 68.4%. Both are design-critical disciplines affecting structural and services packages.</p>
+    </div>
+    <div class="ins r">
+      <h4>&#128680; 37 Overdue Workflows</h4>
+      <p>37 workflows are past their due date with no outcome recorded. Electrical (17) and Structural (13) account for 81% of all overdue reviews. These are the two highest-volume disciplines — escalation is needed.</p>
+    </div>
+  </div>
+
+</div><!-- /part 1 body -->
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     PART 2 — BIM MODEL SUBMISSIONS: CSC REVIEW vs TRACKER
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="part-banner">
+  <div class="part-hdr p2">
+    <div class="part-num">2</div>
+    <div>
+      <h2>BIM Model Submissions — CSC Review &amp; Schematic Stage Tracker</h2>
+      <p>BIM model review workflows (3 parts, 85 workflows) compared against the Schematic Stage BIM Submission Tracker (27 buildings, 27 April 2026 update).</p>
+    </div>
+  </div>
+  <div class="part-sub p2">
+    <span class="stag">KEY MESSAGE</span>
+    Only 1 BIM workflow is Approved; 15 are Approved w/C; 29 R&amp;R; 15 Rejected. Tracker shows only 4 of 27 buildings formally "Submitted" on Aconex. K20C (Water Storage) has 6 R&amp;R and 1 Rejected — the most distressed building.
+  </div>
+</div>
+
+<div class="part-body">
+
+  <!-- KPIs -->
+  <div class="krow">
+    <div class="kpi" style="--ac:var(--bu)">
+      <div class="lb">BIM Workflows</div>
+      <div class="vl">85</div>
+      <div class="sb">Unique building/discipline model packages</div>
+    </div>
+    <div class="kpi" style="--ac:var(--gm)">
+      <div class="lb">Completed</div>
+      <div class="vl" style="color:var(--gm)">64</div>
+      <div class="pb"><div class="pf" style="width:75.3%;background:var(--gm)"></div></div>
+      <div class="sb">75.3% — review cycle finished</div>
+    </div>
+    <div class="kpi" style="--ac:var(--gl)">
+      <div class="lb">Approved / Appr. w/ Comments</div>
+      <div class="vl" style="color:var(--gl)">16</div>
+      <div class="pb"><div class="pf" style="width:18.8%;background:var(--gl)"></div></div>
+      <div class="sb">Only 18.8% cleared — very low approval rate</div>
+    </div>
+    <div class="kpi" style="--ac:var(--go)">
+      <div class="lb">Revise &amp; Resubmit</div>
+      <div class="vl" style="color:#8A5800">29</div>
+      <div class="sb">34.1% sent back — models need rework</div>
+    </div>
+    <div class="kpi" style="--ac:var(--dn)">
+      <div class="lb">Rejected</div>
+      <div class="vl" style="color:var(--dn)">15</div>
+      <div class="sb">17.6% rejected — significant quality issue</div>
+    </div>
+    <div class="kpi" style="--ac:var(--am)">
+      <div class="lb">In Progress</div>
+      <div class="vl" style="color:var(--am)">25</div>
+      <div class="sb">Workflows awaiting outcome (terminated = 21)</div>
+    </div>
+    <div class="kpi" style="--ac:var(--sd)">
+      <div class="lb">Buildings Tracked</div>
+      <div class="vl">27</div>
+      <div class="sb">Schematic stage BIM tracker entries</div>
+    </div>
+    <div class="kpi" style="--ac:var(--dn)">
+      <div class="lb">Formally Submitted (Tracker)</div>
+      <div class="vl" style="color:var(--dn)">4</div>
+      <div class="pb"><div class="pf" style="width:14.8%;background:var(--dn)"></div></div>
+      <div class="sb">Only 4 of 27 buildings show "Submitted" status</div>
+    </div>
+  </div>
+
+  <!-- Outcome + discipline -->
+  <div class="g g64">
+    <div class="card">
+      <h3>BIM Review Outcome by Discipline (document level)</h3>
+      <div class="cd">Each discipline's model documents stacked by review outcome. ST, EL, IT, WS, FP and AR are the highest-volume disciplines in the BIM workflow. Rejected counts are notably high across all — indicating model quality issues upstream.</div>
+      <div class="cw" style="height:360px"><canvas id="p2DiscOut"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>BIM Workflow Outcome (85 workflows)</h3>
+      <div class="cd">At the workflow level (one workflow = one building/discipline BIM package). Only 18.8% have received any form of approval from CSC. 34.1% are actively in R&amp;R cycle.</div>
+      <div class="cw" style="height:360px"><canvas id="p2OutDonut"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Building tracker table -->
+  <div class="card" style="margin-top:12px">
+    <h3>Building-by-Building BIM Tracker — Schematic Stage Status</h3>
+    <div class="cd">Planned BIM submission dates from the Schematic Stage tracker vs Aconex workflow outcomes. "WF Outcomes" shows the mix of review results for all BIM workflows linked to that building. Revizto = internal model review platform; Aconex = formal CDE submission.</div>
+    <div id="p2TrkTable"></div>
+  </div>
+
+  <!-- Monthly BIM trend -->
+  <div class="card" style="margin-top:12px">
+    <h3>Monthly BIM Workflow Activity (by Date In)</h3>
+    <div class="cd">BIM workflows submitted per month coloured by outcome. Activity peaked in Oct 2025 and Nov 2025 (rejected peak). Note the gap in Feb–Mar 2026 — model submissions paused during this period.</div>
+    <div class="cw" style="height:220px"><canvas id="p2Monthly"></canvas></div>
+  </div>
+
+  <div class="ins-row">
+    <div class="ins r">
+      <h4>&#128680; K20C — Most Distressed Building</h4>
+      <p>Water Storage Tank &amp; Pumping Station has <em>7 BIM workflows, 6 R&amp;R and 1 Rejected</em>. Planned submission date was Feb 2026. No model has been approved. CRCC comments shared — resubmission pending.</p>
+    </div>
+    <div class="ins r">
+      <h4>&#9888; North Plot — 5 Rejections, 2 R&amp;R</h4>
+      <p>North Plot (Overpass, Roads, Guard House) has 9 workflows with <em>5 Rejections</em> — the highest rejection count of any group. Revizto review not completed. Aconex formal submission not recorded in tracker.</p>
+    </div>
+    <div class="ins a">
+      <h4>&#128203; Utility Tunnel: Most Active (21 WFs)</h4>
+      <p>The Utility Tunnel group has the most BIM workflows (21) with a mixed outcome: <em>3 Approved w/C, 4 R&amp;R, 7 Rejected</em>. One workflow is fully Approved. This is the most complex multi-discipline model package.</p>
+    </div>
+  </div>
+
+</div><!-- /part 2 body -->
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     PART 3 — BIM MODELS vs DESIGN WORKFLOW: DISCIPLINE ALIGNMENT
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="part-banner">
+  <div class="part-hdr p3">
+    <div class="part-num">3</div>
+    <div>
+      <h2>BIM Models vs Design Drawings — Discipline Alignment Analysis</h2>
+      <p>If drawings are extracted from BIM models, the model review outcome should lead or align with the design workflow outcome. Where design drawings are clearing review faster than BIM models, there is a coordination risk.</p>
+    </div>
+  </div>
+  <div class="part-sub p3">
+    <span class="stag">KEY FINDING</span>
+    In 14 of 19 disciplines, design drawings have a higher approval rate than their BIM models. The average gap is 18 pts. AR (+29 pts), WS (+31 pts) and SG (+32 pts) are the most misaligned — drawings ahead of models, suggesting drawings may not be fully model-derived.
+  </div>
+</div>
+
+<div class="part-body">
+
+  <!-- Comparison chart + gap bar -->
+  <div class="g g55">
+    <div class="card">
+      <h3>Approval Rate: BIM Models vs Design Drawings (per discipline)</h3>
+      <div class="cd">Green bars = BIM model approval rate. Blue bars = design workflow approval rate. Where blue exceeds green, designs are advancing ahead of their source models — a coordination risk. ID is the only fully aligned discipline (both 100%).</div>
+      <div class="cw" style="height:420px"><canvas id="p3Compare"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Approval Gap: Design Approval Rate MINUS BIM Approval Rate</h3>
+      <div class="cd">Positive gap = designs are clearing review faster than BIM models. Negative = models ahead of drawings. A large positive gap suggests drawings may be produced without a fully approved model — a BIM protocol risk. SW (60 pts) and PL (71 pts) are statistical outliers with very small BIM sample sizes.</div>
+      <div class="cw" style="height:420px"><canvas id="p3Gap"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Volume comparison -->
+  <div class="g g2" style="margin-top:12px">
+    <div class="card">
+      <h3>BIM Model Volume vs Design Workflow Volume (per discipline)</h3>
+      <div class="cd">Comparing document counts. Some disciplines have far more BIM model documents than design workflows (e.g. WS: 197 BIM vs 85 Design), reflecting multi-format model deliverables (RVT, IFC, NWC) counted separately.</div>
+      <div class="cw" style="height:290px"><canvas id="p3Volume"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Rework Load: R&amp;R Count — BIM vs Design</h3>
+      <div class="cd">Revise &amp; Resubmit burden comparison. ST has 148 BIM R&amp;R and 154 Design R&amp;R — aligned rework, suggesting consistent design-model integration. FP and WS BIM R&amp;R counts significantly exceed their design R&amp;R, indicating BIM models are iterating more than the extracted drawings.</div>
+      <div class="cw" style="height:290px"><canvas id="p3RR"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Per-discipline mini cards -->
+  <div class="sec" style="margin-top:18px">
+    <div class="sec-dot" style="background:#1A3A5C"></div>
+    <div class="sec-txt">
+      <h3>Discipline-by-Discipline Alignment Cards</h3>
+      <p>BIM approval % vs Design approval % with gap classification. Gap &lt;10 pts = aligned; 10–25 pts = watch; &gt;25 pts = misaligned risk.</p>
+    </div>
+  </div>
+  <div id="p3Cards" class="cmp-grid"></div>
+
+  <div class="ins-row" style="margin-top:14px">
+    <div class="ins r">
+      <h4>&#128680; AR, WS, SG: Designs Racing Ahead</h4>
+      <p>Architectural (gap <em>+29 pts</em>), Water Supply (+31 pts) and Sewage (+32 pts) have designs clearing review at roughly double the rate of their BIM models. If drawings were derived from the model, the model should clear first — this sequence is inverted.</p>
+    </div>
+    <div class="ins a">
+      <h4>&#9888; PI: Both BIM &amp; Design Are Lagging</h4>
+      <p>Process &amp; Instrumentation has <em>15.2% BIM approval</em> and 27.9% design approval — both among the lowest of any discipline. PI models and drawings are behind together. PI is a late-stage discipline; its delays cascade to commissioning packages.</p>
+    </div>
+    <div class="ins g">
+      <h4>&#127881; ID: Perfectly Aligned at 100%</h4>
+      <p>Interior Design is the only discipline where BIM models and design drawings are both <em>100% approved</em>. Small sample size (10 BIM, 8 Design), but demonstrates what good BIM-to-drawing workflow integration looks like in practice.</p>
+    </div>
+  </div>
+
+</div><!-- /part 3 body -->
+
+<!-- FOOTER -->
+<footer>
+  <strong>KSU Facilities &amp; Utilities Relocation Project</strong> &nbsp;|&nbsp;
+  Design &amp; BIM Workflow Status Dashboard &nbsp;|&nbsp;
+  Data: Aconex CDE (Design Submissions CSC Review 1; BIM Submissions Parts 1–3) &amp; Schematic BIM Tracker 27-Apr-2026 &nbsp;|&nbsp;
+  CRC / Jacobs &nbsp;|&nbsp; 12 May 2026
+</footer>
+
+<!-- ════════════════════════ DATA & CHARTS ══════════════════════════════════ -->
+<script>
+// ── BRAND COLOURS ─────────────────────────────────────────────────────────
+const C={
+  apwr:'#007D55',apwc:'#4BAE85',rr:'#C98053',rej:'#EE0000',
+  prog:'#2060A0',term:'#A0A0A0',ov:'#8A0000',
+  bim:'#1A3A5C',des:'#006650',
+};
+const TIP={mode:'index',intersect:false};
+Chart.defaults.font.family="'Nunito Sans','Calibri','Segoe UI',Arial,sans-serif";
+Chart.defaults.font.size=11;
+
+// ══ PART 1 DATA ════════════════════════════════════════════════════════════
+const P1_DISC=[
+  {d:"EL – Electrical",     t:400,ap:139,rr:176,rj:0, ip:21,te:25,ov:17,ar:34.8,rrt:44.0,avg:15.1},
+  {d:"ST – Structural",     t:393,ap:97, rr:154,rj:6, ip:13,te:84,ov:13,ar:24.7,rrt:39.2,avg:14.4},
+  {d:"ME – Mechanical",     t:236,ap:92, rr:109,rj:2, ip:1, te:16,ov:0, ar:39.0,rrt:46.2,avg:12.3},
+  {d:"IT – ICT",            t:169,ap:58, rr:65, rj:0, ip:0, te:14,ov:0, ar:34.3,rrt:38.5,avg:12.6},
+  {d:"FP – Fire Protection",t:169,ap:60, rr:79, rj:0, ip:4, te:15,ov:3, ar:35.5,rrt:46.7,avg:13.5},
+  {d:"PI – Process & Instr.",t:162,ap:34,rr:87, rj:1, ip:0, te:20,ov:0, ar:21.0,rrt:53.7,avg:13.6},
+  {d:"AR – Architectural",  t:143,ap:61, rr:39, rj:0, ip:1, te:21,ov:1, ar:42.7,rrt:27.3,avg:13.3},
+  {d:"WS – Water Supply",   t:107,ap:51, rr:34, rj:0, ip:0, te:11,ov:0, ar:47.7,rrt:31.8,avg:13.0},
+  {d:"DR – Drainage",       t:96, ap:38, rr:34, rj:0, ip:1, te:14,ov:0, ar:39.6,rrt:35.4,avg:12.9},
+  {d:"LI – Lighting",       t:92, ap:28, rr:47, rj:1, ip:3, te:9, ov:3, ar:30.4,rrt:51.1,avg:13.6},
+  {d:"IF – Infrastructure", t:53, ap:10, rr:16, rj:1, ip:0, te:13,ov:0, ar:18.9,rrt:30.2,avg:12.1},
+  {d:"PL – Plumbing",       t:47, ap:31, rr:12, rj:0, ip:1, te:1, ov:0, ar:66.0,rrt:25.5,avg:13.7},
+  {d:"DE – Design",         t:28, ap:5,  rr:16, rj:6, ip:0, te:1, ov:0, ar:17.9,rrt:57.1,avg:13.0},
+  {d:"NS – Non-specific",   t:20, ap:3,  rr:4,  rj:0, ip:0, te:10,ov:0, ar:15.0,rrt:20.0,avg:11.3},
+  {d:"GE – Geotechnical",   t:19, ap:0,  rr:13, rj:0, ip:0, te:3, ov:0, ar:0.0, rrt:68.4,avg:13.0},
+  {d:"IR – Irrigation",     t:11, ap:2,  rr:7,  rj:0, ip:0, te:0, ov:0, ar:18.2,rrt:63.6,avg:11.9},
+  {d:"LA – Landscaping",    t:10, ap:4,  rr:5,  rj:0, ip:0, te:0, ov:0, ar:40.0,rrt:50.0,avg:14.1},
+  {d:"ID – Interior Design",t:10, ap:8,  rr:0,  rj:0, ip:0, te:0, ov:0, ar:80.0,rrt:0.0, avg:15.2},
+  {d:"SG – Sewage",         t:8,  ap:4,  rr:2,  rj:0, ip:0, te:2, ov:0, ar:50.0,rrt:25.0,avg:15.9},
+  {d:"SW – Storm Water",    t:6,  ap:3,  rr:2,  rj:0, ip:0, te:0, ov:0, ar:50.0,rrt:33.3,avg:14.4},
+  {d:"CE – Civil Eng.",     t:5,  ap:1,  rr:1,  rj:0, ip:0, te:3, ov:0, ar:20.0,rrt:20.0,avg:0},
+];
+const P1_MON_IN=[
+  {m:"2025-07",Completed:134,Terminated:6,Overdue:0,Current:0},
+  {m:"2025-08",Completed:105,Terminated:1,Overdue:0,Current:0},
+  {m:"2025-09",Completed:192,Terminated:9,Overdue:0,Current:0},
+  {m:"2025-10",Completed:284,Terminated:8,Overdue:0,Current:0},
+  {m:"2025-11",Completed:104,Terminated:6,Overdue:0,Current:0},
+  {m:"2025-12",Completed:204,Terminated:12,Overdue:0,Current:0},
+  {m:"2026-01",Completed:133,Terminated:5,Overdue:0,Current:0},
+  {m:"2026-02",Completed:154,Terminated:2,Overdue:0,Current:0},
+  {m:"2026-03",Completed:207,Terminated:8,Overdue:0,Current:0},
+  {m:"2026-04",Completed:133,Terminated:15,Overdue:37,Current:8},
+];
+const P1_MON_OUT=[
+  {m:"2025-07",apwc:11,rr:20,rej:2,appr:0},
+  {m:"2025-08",apwc:84,rr:58,rej:8,appr:3},
+  {m:"2025-09",apwc:57,rr:100,rej:3,appr:0},
+  {m:"2025-10",apwc:135,rr:193,rej:0,appr:1},
+  {m:"2025-11",apwc:23,rr:61,rej:1,appr:0},
+  {m:"2025-12",apwc:69,rr:115,rej:0,appr:1},
+  {m:"2026-01",apwc:54,rr:90,rej:2,appr:0},
+  {m:"2026-02",apwc:39,rr:103,rej:0,appr:0},
+  {m:"2026-03",apwc:79,rr:91,rej:0,appr:0},
+  {m:"2026-04",apwc:126,rr:53,rej:0,appr:0},
+  {m:"2026-05",apwc:48,rr:19,rej:1,appr:0},
+];
+
+// ══ PART 2 DATA ════════════════════════════════════════════════════════════
+const P2_DISC=[
+  {d:"ST",t:357,ap:77, rr:148,rj:29,te:76},
+  {d:"EL",t:308,ap:66, rr:122,rj:28,te:71},
+  {d:"IT",t:303,ap:66, rr:123,rj:28,te:65},
+  {d:"WS",t:271,ap:57, rr:130,rj:10,te:53},
+  {d:"FP",t:248,ap:48, rr:113,rj:16,te:55},
+  {d:"AR",t:248,ap:52, rr:97, rj:18,te:65},
+  {d:"ME",t:243,ap:56, rr:101,rj:6, te:59},
+  {d:"DR",t:237,ap:56, rr:99, rj:6, te:55},
+  {d:"NS",t:222,ap:58, rr:80, rj:18,te:51},
+  {d:"LA",t:78, ap:15, rr:22, rj:29,te:12},
+  {d:"PI",t:63, ap:5,  rr:21, rj:6, te:30},
+  {d:"BM",t:62, ap:17, rr:23, rj:5, te:13},
+  {d:"IF",t:50, ap:11, rr:10, rj:25,te:4},
+  {d:"SG",t:32, ap:8,  rr:5,  rj:10,te:4},
+  {d:"IR",t:28, ap:8,  rr:5,  rj:10,te:0},
+  {d:"ID",t:10, ap:10, rr:0,  rj:0, te:0},
+  {d:"SW",t:10, ap:0,  rr:0,  rj:10,te:0},
+  {d:"LI",t:6,  ap:5,  rr:1,  rj:0, te:0},
+];
+const P2_MONTHLY=[
+  {m:"2025-08",apwc:1,rr:5,rej:1,appr:0},
+  {m:"2025-09",apwc:0,rr:0,rej:0,appr:1},
+  {m:"2025-10",apwc:3,rr:14,rej:2,appr:0},
+  {m:"2025-11",apwc:0,rr:4,rej:12,appr:0},
+  {m:"2025-12",apwc:4,rr:4,rej:0,appr:0},
+  {m:"2026-01",apwc:2,rr:2,rej:0,appr:0},
+  {m:"2026-04",apwc:4,rr:0,rej:0,appr:0},
+  {m:"2026-05",apwc:1,rr:0,rej:0,appr:0},
+];
+const P2_TRACKER=[
+  {sno:1, asset:"NORTH PLOT", building:"Overpass",                   planned:"2026-01-18",rvz:"—",   aconex:"—",            sub:false,wf:9, out:{rej:5,rr:2}},
+  {sno:2, asset:"GENERAL",    building:"Utility Tunnel",              planned:"TBD",       rvz:"—",   aconex:"—",            sub:false,wf:21,out:{rej:7,rr:4,apwc:3,appr:1}},
+  {sno:3, asset:"K21A",       building:"Workshop & Warehouse",        planned:"2026-02-10",rvz:"CSC comments in progress", aconex:"Under Review",  sub:true, wf:2, out:{rr:1,apwc:1}},
+  {sno:4, asset:"K20H",       building:"LPG/SNG Plant",              planned:"2026-02-10",rvz:"Review Completed",aconex:"Under Review",sub:true, wf:3, out:{rej:1,apwc:1}},
+  {sno:5, asset:"K20K",       building:"Open Storage Area",           planned:"2026-02-10",rvz:"Review Completed",aconex:"—",          sub:true, wf:3, out:{rr:1,apwc:1}},
+  {sno:6, asset:"KD10",       building:"Transport Dept, Surface Pkg", planned:"2026-03-18",rvz:"Review Completed",aconex:"Under Review",sub:true, wf:3, out:{rej:1,rr:1,apwc:1}},
+  {sno:7, asset:"KD01",       building:"Transport Dept, Workshop",    planned:"2026-03-12",rvz:"No Revizto planned",aconex:"CRCC comments shared",sub:false,wf:3,out:{rr:1,apwc:1}},
+  {sno:8, asset:"K22A",       building:"Civil Defense",               planned:"2026-03-15",rvz:"No Revizto planned",aconex:"CRCC comments shared",sub:false,wf:3,out:{rr:1,apwc:1}},
+  {sno:9, asset:"K23A",       building:"Workshop & Warehouse (KSU)",  planned:"2026-03-15",rvz:"No Revizto planned",aconex:"CRCC comments shared",sub:false,wf:1,out:{rr:1}},
+  {sno:10,asset:"K20P",       building:"Utilities & Storage",         planned:"2026-03-29",rvz:"No Revizto planned",aconex:"CRCC comments shared",sub:false,wf:1,out:{apwc:1}},
+  {sno:11,asset:"K20C",       building:"Water Storage Tank & PS",     planned:"2026-02-22",rvz:"No Revizto planned",aconex:"CRCC comments shared",sub:false,wf:7,out:{rr:6,rej:1}},
+  {sno:12,asset:"K20B",       building:"District Cooling Plant",      planned:"TBD",       rvz:"No Revizto planned",aconex:"Under Re-design", sub:false,wf:6,out:{apwc:2}},
+  {sno:13,asset:"K21B",       building:"M T Hot-Water C",             planned:"2026-02-19",rvz:"Review Completed",aconex:"Pending — basement addition",sub:false,wf:3,out:{rr:1}},
+  {sno:14,asset:"K22B",       building:"Electric Generation Building",planned:"2026-02-18",rvz:"Review Completed",aconex:"Pending — PI models",sub:false,wf:0,out:{}},
+  {sno:15,asset:"KD02/K20G",  building:"Diesel Tank / Transfer PS",   planned:"TBD",       rvz:"Review Completed",aconex:"Pending — relocation",sub:false,wf:0,out:{}},
+  {sno:16,asset:"KD07",       building:"Workshop",                    planned:"2026-02-24",rvz:"Partial CSC comments",aconex:"In progress w/ ECG",sub:false,wf:1,out:{rr:1}},
+  {sno:17,asset:"K24A",       building:"Security Building",           planned:"2026-02-28",rvz:"No Revizto planned",aconex:"In progress w/ ECG",sub:false,wf:1,out:{rr:1}},
+  {sno:18,asset:"K20A",       building:"Central Directorate Office",  planned:"2026-02-26",rvz:"No Revizto planned",aconex:"In progress w/ CRCC",sub:false,wf:0,out:{}},
+  {sno:19,asset:"KD03+BRIDGE",building:"Transport Dept, Office",      planned:"2026-03-26",rvz:"No Revizto planned",aconex:"In progress w/ CRCC",sub:false,wf:0,out:{}},
+  {sno:20,asset:"K20L",       building:"TSE Pumping Station",         planned:"TBD",       rvz:"—",   aconex:"In progress w/ ECG",sub:false,wf:1,out:{apwc:1}},
+  {sno:21,asset:"KD08",       building:"Main Irrigation Tank",        planned:"TBD",       rvz:"—",   aconex:"In progress w/ ECG",sub:false,wf:1,out:{rr:1}},
+  {sno:22,asset:"KD11",       building:"Transport Dept, Sec. Vehicle",planned:"2026-03-12",rvz:"—",   aconex:"In progress w/ ECG",sub:false,wf:3,out:{rr:2}},
+  {sno:23,asset:"NORTH PLOT", building:"Roads/Landscape/Utilities",   planned:"2026-03-15",rvz:"—",   aconex:"—",            sub:false,wf:9,out:{rej:5,rr:2}},
+  {sno:24,asset:"SOUTH PLOT", building:"Roads/Landscape/Utilities",   planned:"2026-03-15",rvz:"—",   aconex:"—",            sub:false,wf:0,out:{}},
+  {sno:25,asset:"SOUTH PLOT", building:"Guard House South",           planned:"2026-03-15",rvz:"—",   aconex:"In progress w/ ECG",sub:false,wf:0,out:{}},
+  {sno:26,asset:"NORTH PLOT", building:"Guard House North",           planned:"2026-03-15",rvz:"—",   aconex:"In progress w/ ECG",sub:false,wf:9,out:{rej:5,rr:2}},
+  {sno:27,asset:"K20D",       building:"Sewage Treatment Plant",      planned:"TBD",       rvz:"—",   aconex:"Under relocation",sub:false,wf:0,out:{}},
+];
+
+// ══ PART 3 DATA ════════════════════════════════════════════════════════════
+const P3=[
+  {d:"EL – Electrical",      bt:216,ba:66,  brr:122,bpct:30.6, dt:336,da:139,drr:176,dpct:41.4,gap:10.8},
+  {d:"ST – Structural",      bt:254,ba:77,  brr:148,bpct:30.3, dt:270,da:97, drr:154,dpct:35.9,gap:5.6},
+  {d:"ME – Mechanical",      bt:163,ba:56,  brr:101,bpct:34.4, dt:204,da:92, drr:109,dpct:45.1,gap:10.7},
+  {d:"FP – Fire Protection", bt:177,ba:48,  brr:113,bpct:27.1, dt:143,da:60, drr:79, dpct:42.0,gap:14.9},
+  {d:"IT – ICT",             bt:217,ba:66,  brr:123,bpct:30.4, dt:123,da:58, drr:65, dpct:47.2,gap:16.8},
+  {d:"AR – Architectural",   bt:167,ba:52,  brr:97, bpct:31.1, dt:101,da:61, drr:39, dpct:60.4,gap:29.3},
+  {d:"WS – Water Supply",    bt:197,ba:57,  brr:130,bpct:28.9, dt:85, da:51, drr:34, dpct:60.0,gap:31.1},
+  {d:"DR – Drainage",        bt:161,ba:56,  brr:99, bpct:34.8, dt:73, da:38, drr:34, dpct:52.1,gap:17.3},
+  {d:"LI – Lighting",        bt:6,  ba:5,   brr:1,  bpct:83.3, dt:79, da:28, drr:47, dpct:35.4,gap:-47.9},
+  {d:"PI – Process & Instr.",bt:33, ba:5,   brr:21, bpct:15.2, dt:122,da:34, drr:87, dpct:27.9,gap:12.7},
+  {d:"IF – Infrastructure",  bt:46, ba:11,  brr:10, bpct:23.9, dt:27, da:10, drr:16, dpct:37.0,gap:13.1},
+  {d:"LA – Landscaping",     bt:66, ba:15,  brr:22, bpct:22.7, dt:9,  da:4,  drr:5,  dpct:44.4,gap:21.7},
+  {d:"ID – Interior Design", bt:10, ba:10,  brr:0,  bpct:100.0,dt:8,  da:8,  drr:0,  dpct:100.0,gap:0.0},
+  {d:"SG – Sewage",          bt:23, ba:8,   brr:5,  bpct:34.8, dt:6,  da:4,  drr:2,  dpct:66.7,gap:31.9},
+  {d:"IR – Irrigation",      bt:23, ba:8,   brr:5,  bpct:34.8, dt:9,  da:2,  drr:7,  dpct:22.2,gap:-12.6},
+  {d:"DE – Design",          bt:15, ba:8,   brr:6,  bpct:53.3, dt:27, da:5,  drr:16, dpct:18.5,gap:-34.8},
+  {d:"NS – Non-specific",    bt:156,ba:58,  brr:80, bpct:37.2, dt:7,  da:3,  drr:4,  dpct:42.9,gap:5.7},
+  {d:"PL – Plumbing",        bt:1,  ba:0,   brr:1,  bpct:0.0,  dt:44, da:31, drr:12, dpct:70.5,gap:70.5},
+  {d:"SW – Storm Water",     bt:10, ba:0,   brr:0,  bpct:0.0,  dt:5,  da:3,  drr:2,  dpct:60.0,gap:60.0},
+];
+// Filter to disciplines with meaningful volumes for main charts
+const P3_MAIN = P3.filter(r=>r.bt>=10 && r.dt>=5);
+
+// ══ CHART BUILDERS ════════════════════════════════════════════════════════
+
+// P1 – Discipline stacked bar
+new Chart(document.getElementById('p1DiscOut'),{
+  type:'bar',
+  data:{
+    labels:P1_DISC.map(d=>d.d),
+    datasets:[
+      {label:'Approved / w/C', data:P1_DISC.map(d=>d.ap), backgroundColor:C.apwc, borderRadius:2},
+      {label:'Revise & Resubmit',data:P1_DISC.map(d=>d.rr),backgroundColor:C.rr,  borderRadius:2},
+      {label:'Rejected',       data:P1_DISC.map(d=>d.rj), backgroundColor:C.rej,  borderRadius:2},
+      {label:'In Progress',    data:P1_DISC.map(d=>d.ip), backgroundColor:C.prog, borderRadius:2},
+      {label:'Terminated',     data:P1_DISC.map(d=>d.te), backgroundColor:C.term, borderRadius:2},
+    ]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:8}},tooltip:TIP},
+    scales:{
+      x:{stacked:true,grid:{color:'#F0EDE9'},ticks:{callback:v=>v.toLocaleString()}},
+      y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}},
+    }
+  }
+});
+
+// P1 – Outcome donut
+new Chart(document.getElementById('p1OutDonut'),{
+  type:'doughnut',
+  data:{
+    labels:['Approved w/C','Revise & Resubmit','In Progress / Current','Terminated','Rejected','Approved'],
+    datasets:[{
+      data:[725,903,544,262,17,5],
+      backgroundColor:[C.apwc,C.rr,C.prog,C.term,C.rej,C.apwr],
+      borderWidth:2,borderColor:'#fff'
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:'58%',
+    plugins:{
+      legend:{position:'bottom',labels:{padding:8,font:{size:9}}},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${(c.raw/2186*100).toFixed(1)}%)`}}
+    }
+  }
+});
+
+// P1 – Monthly submissions (date in)
+new Chart(document.getElementById('p1MonthIn'),{
+  type:'bar',
+  data:{
+    labels:P1_MON_IN.map(d=>d.m),
+    datasets:[
+      {label:'Completed',  data:P1_MON_IN.map(d=>d.Completed),  backgroundColor:'#006650',borderRadius:2},
+      {label:'Overdue',    data:P1_MON_IN.map(d=>d.Overdue),    backgroundColor:C.rej,    borderRadius:2},
+      {label:'Current',    data:P1_MON_IN.map(d=>d.Current),    backgroundColor:C.prog,   borderRadius:2},
+      {label:'Terminated', data:P1_MON_IN.map(d=>d.Terminated), backgroundColor:C.term,   borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:9},padding:6}},tooltip:TIP},
+    scales:{
+      x:{stacked:true,grid:{display:false}},
+      y:{stacked:true,grid:{color:'#F0EDE9'},ticks:{callback:v=>v.toLocaleString()}},
+    }
+  }
+});
+
+// P1 – Monthly outcomes (date completed)
+new Chart(document.getElementById('p1MonthOut'),{
+  type:'bar',
+  data:{
+    labels:P1_MON_OUT.map(d=>d.m),
+    datasets:[
+      {label:'Approved',         data:P1_MON_OUT.map(d=>d.appr), backgroundColor:C.apwr, borderRadius:2},
+      {label:'Approved w/C',     data:P1_MON_OUT.map(d=>d.apwc), backgroundColor:C.apwc, borderRadius:2},
+      {label:'Revise & Resubmit',data:P1_MON_OUT.map(d=>d.rr),   backgroundColor:C.rr,   borderRadius:2},
+      {label:'Rejected',         data:P1_MON_OUT.map(d=>d.rej),  backgroundColor:C.rej,  borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:9},padding:6}},tooltip:TIP},
+    scales:{
+      x:{stacked:true,grid:{display:false}},
+      y:{stacked:true,grid:{color:'#F0EDE9'},ticks:{callback:v=>v.toLocaleString()}},
+    }
+  }
+});
+
+// P1 – Discipline table
+(function(){
+  const w=document.getElementById('p1DiscTable');
+  const t=document.createElement('table');
+  t.className='dt';
+  t.innerHTML=`<thead><tr>
+    <th>Discipline</th><th style="text-align:right">WFs</th>
+    <th>Approval Rate</th><th style="text-align:right">R&R</th>
+    <th style="text-align:right">Overdue</th><th style="text-align:right">Avg Days</th>
+  </tr></thead>`;
+  const tb=document.createElement('tbody');
+  P1_DISC.forEach(d=>{
+    const rc=d.ar>=50?'ph':d.ar>=30?'pm':'pl';
+    const bc=d.ar>=50?'#007D55':d.ar>=30?'#C98053':'#EE0000';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="nm" title="${d.d}">${d.d}</td>
+      <td style="text-align:right">${d.t}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px">
+          <div class="pb2" style="flex:1"><div class="pf2" style="width:${d.ar}%;background:${bc}"></div></div>
+          <span class="pill ${rc}">${d.ar}%</span>
+        </div>
+      </td>
+      <td style="text-align:right;color:#C98053;font-weight:700">${d.rr}</td>
+      <td style="text-align:right;color:${d.ov>0?'#EE0000':'#5C6B60'};font-weight:${d.ov>0?800:400}">${d.ov>0?d.ov:'—'}</td>
+      <td style="text-align:right">${d.avg>0?d.avg+'d':'—'}</td>`;
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);w.appendChild(t);
+})();
+
+// P1 – Duration bar
+new Chart(document.getElementById('p1DurBar'),{
+  type:'bar',
+  data:{
+    labels:P1_DISC.filter(d=>d.avg>0).map(d=>d.d),
+    datasets:[{
+      label:'Avg Review Days',
+      data:P1_DISC.filter(d=>d.avg>0).map(d=>d.avg),
+      backgroundColor:P1_DISC.filter(d=>d.avg>0).map(d=>d.avg>=14?'#C98053':'#006650'),
+      borderRadius:3,
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>`  ${c.raw} days avg`}},
+      annotation:{annotations:{line1:{type:'line',xMin:14,xMax:14,
+        borderColor:'#EE0000',borderWidth:1.5,borderDash:[4,3]}}}
+    },
+    scales:{
+      x:{min:10,max:17,grid:{color:'#F0EDE9'},ticks:{callback:v=>v+'d'}},
+      y:{grid:{display:false},ticks:{font:{size:9}}},
+    }
+  }
+});
+
+// P2 – Discipline stacked bar (document level)
+new Chart(document.getElementById('p2DiscOut'),{
+  type:'bar',
+  data:{
+    labels:P2_DISC.map(d=>d.d),
+    datasets:[
+      {label:'Approved / w/C',   data:P2_DISC.map(d=>d.ap), backgroundColor:C.apwc, borderRadius:2},
+      {label:'Revise & Resubmit',data:P2_DISC.map(d=>d.rr), backgroundColor:C.rr,   borderRadius:2},
+      {label:'Rejected',         data:P2_DISC.map(d=>d.rj), backgroundColor:C.rej,  borderRadius:2},
+      {label:'Terminated',       data:P2_DISC.map(d=>d.te), backgroundColor:C.term, borderRadius:2},
+    ]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:8}},tooltip:TIP},
+    scales:{
+      x:{stacked:true,grid:{color:'#F9F0F0'},ticks:{callback:v=>v.toLocaleString()}},
+      y:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
+    }
+  }
+});
+
+// P2 – BIM outcome donut (workflow level)
+new Chart(document.getElementById('p2OutDonut'),{
+  type:'doughnut',
+  data:{
+    labels:['R&R','In Progress','Rejected','Approved w/C','Terminated','Approved'],
+    datasets:[{
+      data:[29,25,15,15,21,1],
+      backgroundColor:[C.rr,C.prog,C.rej,C.apwc,C.term,C.apwr],
+      borderWidth:2,borderColor:'#fff'
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:'58%',
+    plugins:{
+      legend:{position:'bottom',labels:{padding:8,font:{size:9}}},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${(c.raw/85*100).toFixed(1)}%)`}}
+    }
+  }
+});
+
+// P2 – Tracker table
+(function(){
+  const w=document.getElementById('p2TrkTable');
+  const t=document.createElement('table');
+  t.className='trk-tbl';
+  t.innerHTML=`<thead><tr>
+    <th>#</th><th>Asset</th><th>Building</th><th>BIM Planned Date</th>
+    <th>Aconex Tracker Status</th><th>WF Count</th><th>WF Outcomes</th>
+  </tr></thead>`;
+  const tb=document.createElement('tbody');
+  P2_TRACKER.forEach(d=>{
+    const subBadge=d.sub?'<span class="badge b-sub">SUBMITTED</span>':'<span class="badge b-nosub">NOT SUBMITTED</span>';
+    const pdBadge=d.planned==='TBD'?'<span class="badge b-tbd">TBD</span>':`<code style="font-size:.67rem">${d.planned}</code>`;
+    // Build outcome badges
+    let outHtml='—';
+    if(d.wf>0){
+      const parts=[];
+      if(d.out.appr)  parts.push(`<span class="badge b-appr">Appr: ${d.out.appr}</span>`);
+      if(d.out.apwc)  parts.push(`<span class="badge b-appr">Appr w/C: ${d.out.apwc}</span>`);
+      if(d.out.rr)    parts.push(`<span class="badge b-rr">R&R: ${d.out.rr}</span>`);
+      if(d.out.rej)   parts.push(`<span class="badge b-rej">Rej: ${d.out.rej}</span>`);
+      if(!parts.length) parts.push(`<span class="badge b-prog">In Progress</span>`);
+      outHtml=parts.join(' ');
+    }
+    // Aconex status colour
+    const ac=d.aconex;
+    const acClass=ac.includes('Under Review')||ac.includes('Submitted')?'b-prog':
+                  ac.includes('relocation')||ac.includes('Re-design')?'b-rej':'b-tbd';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-weight:800;color:var(--bu)">${d.sno}</td>
+      <td style="font-weight:800">${d.asset}</td>
+      <td>${d.building}</td>
+      <td>${pdBadge}&nbsp;${subBadge}</td>
+      <td><span class="badge ${acClass}" style="white-space:normal;line-height:1.3">${ac||'—'}</span></td>
+      <td style="text-align:center;font-weight:700">${d.wf>0?d.wf:'—'}</td>
+      <td style="white-space:nowrap">${outHtml}</td>`;
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);w.appendChild(t);
+})();
+
+// P2 – Monthly BIM trend
+new Chart(document.getElementById('p2Monthly'),{
+  type:'bar',
+  data:{
+    labels:P2_MONTHLY.map(d=>d.m),
+    datasets:[
+      {label:'Approved',         data:P2_MONTHLY.map(d=>d.appr), backgroundColor:C.apwr, borderRadius:2},
+      {label:'Approved w/C',     data:P2_MONTHLY.map(d=>d.apwc), backgroundColor:C.apwc, borderRadius:2},
+      {label:'Revise & Resubmit',data:P2_MONTHLY.map(d=>d.rr),   backgroundColor:C.rr,   borderRadius:2},
+      {label:'Rejected',         data:P2_MONTHLY.map(d=>d.rej),  backgroundColor:C.rej,  borderRadius:2},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:9},padding:6}},tooltip:TIP},
+    scales:{
+      x:{stacked:true,grid:{display:false}},
+      y:{stacked:true,grid:{color:'#F0EDE9'},ticks:{callback:v=>v.toLocaleString()}},
+    }
+  }
+});
+
+// P3 – Compare bars (grouped)
+new Chart(document.getElementById('p3Compare'),{
+  type:'bar',
+  data:{
+    labels:P3_MAIN.map(d=>d.d),
+    datasets:[
+      {label:'BIM Model Approval %', data:P3_MAIN.map(d=>d.bpct), backgroundColor:'rgba(26,58,92,0.8)', borderRadius:3},
+      {label:'Design Drawing Approval %',data:P3_MAIN.map(d=>d.dpct),backgroundColor:'rgba(0,102,80,0.8)',borderRadius:3},
+    ]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:9}}},tooltip:{mode:'index',intersect:false}},
+    scales:{
+      x:{max:110,grid:{color:'#F0EDE9'},ticks:{callback:v=>v+'%'}},
+      y:{grid:{display:false},ticks:{font:{size:9}}},
+    }
+  }
+});
+
+// P3 – Gap bar
+const gapData=P3_MAIN.map(d=>({d:d.d,g:d.gap})).sort((a,b)=>b.g-a.g);
+new Chart(document.getElementById('p3Gap'),{
+  type:'bar',
+  data:{
+    labels:gapData.map(d=>d.d),
+    datasets:[{
+      label:'Gap (Design% – BIM%)',
+      data:gapData.map(d=>d.g),
+      backgroundColor:gapData.map(d=>d.g>25?'rgba(238,0,0,0.75)':d.g>10?'rgba(201,128,83,0.8)':d.g<0?'rgba(44,74,138,0.7)':'rgba(0,125,85,0.75)'),
+      borderRadius:3,
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>`  Gap: ${c.raw>0?'+':''}${c.raw} pts ${c.raw>0?'(design ahead of BIM)':'(BIM ahead of design)'}`}}
+    },
+    scales:{
+      x:{grid:{color:'#F0EDE9'},ticks:{callback:v=>(v>0?'+':'')+v+' pts'}},
+      y:{grid:{display:false},ticks:{font:{size:9}}},
+    }
+  }
+});
+
+// P3 – Volume comparison
+new Chart(document.getElementById('p3Volume'),{
+  type:'bar',
+  data:{
+    labels:P3_MAIN.map(d=>d.d),
+    datasets:[
+      {label:'BIM Documents',   data:P3_MAIN.map(d=>d.bt), backgroundColor:'rgba(26,58,92,0.75)', borderRadius:3},
+      {label:'Design Workflows',data:P3_MAIN.map(d=>d.dt), backgroundColor:'rgba(0,102,80,0.75)', borderRadius:3},
+    ]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:9}}},tooltip:{mode:'index',intersect:false}},
+    scales:{
+      x:{grid:{color:'#F0EDE9'},ticks:{callback:v=>v.toLocaleString()}},
+      y:{grid:{display:false},ticks:{font:{size:9}}},
+    }
+  }
+});
+
+// P3 – R&R comparison
+new Chart(document.getElementById('p3RR'),{
+  type:'bar',
+  data:{
+    labels:P3_MAIN.map(d=>d.d),
+    datasets:[
+      {label:'BIM R&R',    data:P3_MAIN.map(d=>d.brr), backgroundColor:'rgba(26,58,92,0.7)',  borderRadius:3},
+      {label:'Design R&R', data:P3_MAIN.map(d=>d.drr), backgroundColor:'rgba(201,128,83,0.8)',borderRadius:3},
+    ]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:9}}},tooltip:{mode:'index',intersect:false}},
+    scales:{
+      x:{grid:{color:'#F0EDE9'},ticks:{callback:v=>v.toLocaleString()}},
+      y:{grid:{display:false},ticks:{font:{size:9}}},
+    }
+  }
+});
+
+// P3 – Mini comparison cards
+(function(){
+  const grid=document.getElementById('p3Cards');
+  P3.forEach(d=>{
+    const gap=d.gap;
+    const gapClass=Math.abs(gap)<=10?'gap-ok':Math.abs(gap)<=25?'gap-warn':'gap-risk';
+    const gapLabel=gap>0?`Design ahead by +${gap} pts`:gap<0?`BIM ahead by ${Math.abs(gap)} pts`:'Aligned';
+    const div=document.createElement('div');
+    div.className='cmp-card';
+    div.innerHTML=`
+      <div class="cc-disc">${d.d}</div>
+      <div class="cmp-row">
+        <span class="cmp-lbl" style="color:var(--bu)">BIM</span>
+        <div class="cmp-bar-wrap">
+          <div class="cmp-bar-fill" style="width:${Math.min(d.bpct,100)}%;background:#1A3A5C"></div>
+        </div>
+        <span class="cmp-pct" style="color:#1A3A5C">${d.bpct}%</span>
+      </div>
+      <div class="cmp-row">
+        <span class="cmp-lbl" style="color:var(--gm)">Design</span>
+        <div class="cmp-bar-wrap">
+          <div class="cmp-bar-fill" style="width:${Math.min(d.dpct,100)}%;background:#006650"></div>
+        </div>
+        <span class="cmp-pct" style="color:#006650">${d.dpct}%</span>
+      </div>
+      <div style="margin-top:7px;font-size:.65rem;color:var(--sub)">
+        BIM: ${d.bt} docs &nbsp;|&nbsp; Design: ${d.dt} WFs
+      </div>
+      <span class="cmp-gap ${gapClass}">${gapLabel}</span>`;
+    grid.appendChild(div);
+  });
+})();
+</script>
+</body>
+</html>
